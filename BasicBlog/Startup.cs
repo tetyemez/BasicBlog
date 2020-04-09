@@ -17,6 +17,7 @@ using BasicBlog.Models;
 using Microsoft.AspNetCore.SpaServices.StaticFiles;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using System.IO;
+using Microsoft.OpenApi.Models;
 
 namespace BasicBlog
 {
@@ -33,6 +34,7 @@ namespace BasicBlog
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
             services.AddCors(o => o.AddPolicy("CorsPolicy", builder =>
             {
                 builder.AllowAnyOrigin()
@@ -49,11 +51,12 @@ namespace BasicBlog
 
             services.AddScoped(typeof(IDataRepository<>), typeof(DataRepository<>));
 
+            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "BasicBlog API", Version = "v1" }); });
+
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
-                //configuration.RootPath = "ClientApp/dist";
-                configuration.RootPath = @"C:\Users\tugru\source\repos\TrackWorkout\ClientApp";
+                configuration.RootPath = "ClientApp/dist";
             });
         }
 
@@ -71,40 +74,28 @@ namespace BasicBlog
             app.UseCors("CorsPolicy");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
                     template: "{controller}/{action=Index}/{id?}");
             });
-            
-            //app.UseSpa(spa =>
-            //{
-            //    // To learn more about options for serving an Angular SPA from ASP.NET Core,
-            //    // see https://go.microsoft.com/fwlink/?linkid=864501
 
-            //    spa.Options.SourcePath = "C:/Users/tugru/source/repos/TrackWorkout/ClientApp";
+            app.UseSpa(spa =>
+            {
+                // To learn more about options for serving an Angular SPA from ASP.NET Core,
+                // see https://go.microsoft.com/fwlink/?linkid=864501
 
-            //    if (env.IsDevelopment())
-            //    {
-            //        spa.UseAngularCliServer(npmScript: "start");
-            //    }
-            //});
+                spa.Options.SourcePath = "ClientApp";
 
+                if (env.IsDevelopment())
+                {
+                    spa.UseAngularCliServer(npmScript: "start");
+                }
+            });
 
-            //app.UseSpaStaticFiles();
-            //app.UseAuthorization();
-
-            /*
-             * MVC routing kaldırınca bunları açabilirsin
-             */
-            //app.UseRouting();
-            //app.UseEndpoints(endpoints =>
-            //{
-            //    endpoints.MapControllers();
-            //});
-
+            app.UseSwagger();
+            app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "BasicBlog API V1"); });
 
         }
     }
